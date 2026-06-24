@@ -322,6 +322,9 @@
          PAGE 2 — CONFIRMATION
     ══════════════════════════════════════ -->
     <div class="page" id="page-confirm">
+      <button onclick="goBack()" style="background:none;border:none;cursor:pointer;color:var(--teal);font-size:14px;font-weight:600;padding:0 0 16px;display:flex;align-items:center;gap:6px;">
+        ← Back
+      </button>
       <div class="confirm-heading">Thank you, <span id="confirm-name"></span>!</div>
       <div class="confirm-sub">
         You're all set to experience <strong>AngaTech Health's Voice AI</strong>.<br>
@@ -355,6 +358,14 @@
     "scenario_01","scenario_02","scenario_03","scenario_04","scenario_05",
     "scenario_06","scenario_07","scenario_08","scenario_09","scenario_10"
   ];
+
+  function goBack() {
+    document.getElementById('page-confirm').classList.remove('active');
+    document.getElementById('page-form').classList.add('active');
+    document.getElementById('callToast').className = 'toast';
+    document.getElementById('callMeBtn').disabled = false;
+    document.getElementById('callMeBtn').textContent = '📲 \u00a0Call me instead';
+  }
 
   function randomScenario() {
     return SCENARIO_IDS[Math.floor(Math.random() * SCENARIO_IDS.length)];
