@@ -336,6 +336,7 @@
       <button class="btn btn-call-now" onclick="dialNow()">
         📞 &nbsp;Call us now &nbsp;· &nbsp;+1 (805) 439-8008
       </button>
+      <div class="toast" id="dialToast" style="display:none;"></div>
 
       <button class="btn btn-outline" id="callMeBtn" onclick="callMe()">
         📲 &nbsp;Call me instead
@@ -353,6 +354,24 @@
 </div><!-- /card -->
 
 <script>
+  /* ── "Call us now" — copy number & show toast ── */
+  async function dialNow() {
+    try {
+      await navigator.clipboard.writeText('+18054398008');
+      showDialToast('📋 Number copied! Dial +1 (805) 439-8008 from your phone.');
+    } catch(e) {
+      showDialToast('📞 Call us at +1 (805) 439-8008');
+    }
+  }
+
+  function showDialToast(msg) {
+    const t = document.getElementById('dialToast');
+    t.className = 'toast success';
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 4000);
+  }
+
   /* ── Scenario list (mirrors scenarios.py) ── */
   const SCENARIO_IDS = [
     "scenario_01","scenario_02","scenario_03","scenario_04","scenario_05",
@@ -424,11 +443,6 @@
 
     document.getElementById('page-form').classList.remove('active');
     document.getElementById('page-confirm').classList.add('active');
-  }
-
-  /* ── "Call us now" — just shows the number (already in button label) ── */
-  function dialNow() {
-    window.location.href = 'tel:+18054398008';
   }
 
   /* ── "Call me instead" — POST to Render ── */
