@@ -1,14 +1,15 @@
 # Twilio Voice Bot for Healthcare Patient Conversations
 
-A Python-based voice bot that uses Twilio and OpenAI GPT-4o to simulate realistic healthcare patient conversations. The bot calls a test number and engages in conversation while recording and transcribing both sides of the call.
+A Python-based voice bot that uses Twilio and OpenAI GPT-4o to simulate realistic healthcare patient conversations. The bot plays the **patient role**, making outbound calls to a test number where a real agent responds. Calls are recorded and transcribed using Twilio recording + OpenAI Whisper for analysis.
 
 ## Features
 
-- **Automated calling**: Initiates calls to test numbers using Twilio
-- **AI-powered conversations**: Uses OpenAI GPT-4o to generate realistic patient dialogue
-- **Call recording**: Records both bot and patient audio
-- **Transcription**: Converts call audio to text for analysis and review
-- **Scenario-based testing**: Supports multiple patient scenarios and personas
+- **Automated calling**: Initiates outbound calls to test numbers using Twilio
+- **AI-powered patient conversations**: Uses OpenAI GPT-4o to generate realistic patient dialogue
+- **Voice synthesis**: Uses Amazon Polly for natural-sounding patient voice
+- **Call recording**: Records both bot (patient) and agent audio
+- **Transcription**: Uses OpenAI Whisper to convert call audio to text for analysis
+- **Scenario-based testing**: Supports 10+ healthcare patient scenarios and personas
 - **Conversation state management**: Maintains context throughout the call
 - **Flask API**: REST endpoints for call management and monitoring
 
@@ -25,10 +26,9 @@ A Python-based voice bot that uses Twilio and OpenAI GPT-4o to simulate realisti
 
 ### Prerequisites
 
-- Python 3.8+
-- Twilio account with phone number
-- OpenAI API key (for GPT-4o access)
-- Google Cloud Speech-to-Text credentials (optional, for transcription)
+- Python 3.11+
+- Twilio account with phone number and API credentials
+- OpenAI API key (for GPT-4o and Whisper transcription)
 
 ### Installation
 
@@ -61,9 +61,10 @@ Update `.env` with your credentials:
 
 - `TWILIO_ACCOUNT_SID` - Your Twilio account SID
 - `TWILIO_AUTH_TOKEN` - Your Twilio auth token
-- `TWILIO_PHONE_NUMBER` - Your Twilio phone number
-- `OPENAI_API_KEY` - Your OpenAI API key
-- `TEST_PHONE_NUMBER` - The number to call (default: +18054398008)
+- `TWILIO_PHONE_NUMBER` - Your Twilio phone number (bot calls FROM this number)
+- `OPENAI_API_KEY` - Your OpenAI API key (for GPT-4o and Whisper)
+- `TEST_PHONE_NUMBER` - The phone number to call (agent picks up here)
+- `BASE_URL` - Base URL for Twilio webhooks (e.g., https://yourapp.onrender.com)
 
 ## Usage
 
@@ -76,18 +77,25 @@ The Flask server will start on the configured port (default: 5000).
 
 ## Scenarios
 
-The bot supports multiple healthcare patient scenarios including:
-- Initial consultation calls
-- Follow-up appointment calls
-- Prescription refill requests
-- Insurance inquiry calls
-- Appointment scheduling
+The bot supports 10 diverse healthcare patient scenarios:
+1. Appointment scheduling
+2. Appointment rescheduling
+3. Appointment cancellation
+4. Prescription refill requests
+5. Office hours inquiry
+6. Insurance and billing questions
+7. Urgent symptom reporting
+8. New patient registration
+9. Confused/confused patient
+10. Topic-jumping patient
+
+Each scenario includes a unique patient persona, medical context, and conversation goal.
 
 ## Recording and Transcription
 
 All calls are automatically:
-- Recorded to `./recordings/`
-- Transcribed to `./transcripts/`
+- **Recorded** by Twilio to `./recordings/` (MP3 format)
+- **Transcribed** by OpenAI Whisper to `./transcripts/` (JSON format with full conversation history and metadata)
 
 ## API Endpoints
 
