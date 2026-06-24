@@ -269,10 +269,7 @@
   <!-- ── HEADER (shared) ── -->
   <div class="card-header">
     <div class="clinic-name">AngaTech <span>Health</span></div>
-    <div class="badge">
-      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 14.93V17a1 1 0 0 1-2 0v-.07A8.001 8.001 0 0 1 4.07 11H5a1 1 0 0 1 0 2h-.93A8.001 8.001 0 0 1 11 19.93zm0-13.86A8.001 8.001 0 0 1 19.93 11H19a1 1 0 0 1 0-2h.93A8.001 8.001 0 0 1 13 4.07V5a1 1 0 0 1-2 0v-.93z"/></svg>
-      Powered by Voice AI
-    </div>
+    <div class="badge">Powered by Voice AI</div>
   </div>
 
   <div class="card-body">
@@ -315,7 +312,7 @@
         <div class="field-error" id="err-dob">Required</div>
       </div>
 
-      <button class="btn btn-primary" onclick="submitForm()">Try our demo →</button>
+      <button class="btn btn-primary" onclick="submitForm()">Try our demo</button>
     </div>
 
     <!-- ══════════════════════════════════════
@@ -333,14 +330,10 @@
 
       <div class="what-next">What's next?</div>
 
-      <button class="btn btn-call-now" onclick="dialNow()">
-        📞 &nbsp;Call us now &nbsp;· &nbsp;+1 (805) 439-8008
-      </button>
+      <button class="btn btn-call-now" onclick="dialNow()">Call us now</button>
       <div class="toast" id="dialToast" style="display:none;"></div>
 
-      <button class="btn btn-outline" id="callMeBtn" onclick="callMe()">
-        📲 &nbsp;Call me instead
-      </button>
+      <button class="btn btn-outline" id="callMeBtn" onclick="callMe()">Call me instead</button>
 
       <div class="toast" id="callToast"></div>
 
@@ -354,22 +347,38 @@
 </div><!-- /card -->
 
 <script>
-  /* ── "Call us now" — copy number & show toast ── */
+  /* ── "Call us now" — bot calls the patient's phone ── */
   async function dialNow() {
-    try {
-      await navigator.clipboard.writeText('+18054398008');
-      showDialToast('📋 Number copied! Dial +1 (805) 439-8008 from your phone.');
-    } catch(e) {
-      showDialToast('📞 Call us at +1 (805) 439-8008');
-    }
-  }
+    const btn   = document.querySelector('.btn-call-now');
+    const toast = document.getElementById('dialToast');
+    const phone = normalizePhone(document.getElementById('phone').value.trim());
 
-  function showDialToast(msg) {
-    const t = document.getElementById('dialToast');
-    t.className = 'toast success';
-    t.textContent = msg;
-    t.style.display = 'block';
-    setTimeout(() => { t.style.display = 'none'; }, 4000);
+    btn.disabled = true;
+    btn.textContent = 'Calling…';
+    toast.className = 'toast loading';
+    toast.style.display = 'block';
+    toast.textContent = 'Connecting you to the AI assistant…';
+
+    try {
+      const resp = await fetch('https://voice-bot-xtjs.onrender.com/call/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: phone, scenario_id: randomScenario() })
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        toast.className = 'toast success';
+        toast.textContent = 'Calling you now at ' + phone + '.';
+        btn.textContent = 'Call placed';
+      } else {
+        throw new Error(data.error || 'Server error ' + resp.status);
+      }
+    } catch(e) {
+      toast.className = 'toast error';
+      toast.textContent = e.message;
+      btn.disabled = false;
+      btn.textContent = 'Call us now';
+    }
   }
 
   /* ── Scenario list (mirrors scenarios.py) ── */
@@ -383,7 +392,7 @@
     document.getElementById('page-form').classList.add('active');
     document.getElementById('callToast').className = 'toast';
     document.getElementById('callMeBtn').disabled = false;
-    document.getElementById('callMeBtn').textContent = '📲 \u00a0Call me instead';
+    document.getElementById('callMeBtn').textContent = 'Call me instead';
   }
 
   function randomScenario() {
@@ -470,16 +479,16 @@
 
       if (resp.ok) {
         toast.className = 'toast success';
-        toast.textContent = '✅ You\'ll receive a call shortly! Scenario: ' + (data.scenario || 'Patient demo');
-        btn.textContent = '✔ Call requested';
+        toast.textContent = 'You will receive a call shortly.';
+        btn.textContent = 'Call requested';
       } else {
         throw new Error(data.error || 'Server error ' + resp.status);
       }
     } catch(e) {
       toast.className = 'toast error';
-      toast.textContent = '❌ ' + e.message;
+      toast.textContent = e.message;
       btn.disabled = false;
-      btn.textContent = '📲  Call me instead';
+      btn.textContent = 'Call me instead';
     }
   }
 </script>
