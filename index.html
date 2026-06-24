@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AngaTech Health — Voice AI Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:        #0d7377;
+      --teal-dark:   #085255;
+      --teal-light:  #14a085;
+      --teal-bg:     #e8f4f4;
+      --white:       #ffffff;
+      --gray-light:  #f4f7f7;
+      --gray-border: #c8dcdc;
+      --gray-text:   #5a7272;
+      --danger:      #c0392b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--teal-bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 8px 40px rgba(13,115,119,.15);
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%);
+      padding: 32px 32px 24px;
+      text-align: center;
+      color: var(--white);
+    }
+
+    .clinic-name {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .clinic-name span { color: #7fe8e0; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: rgba(255,255,255,.9);
+      font-weight: 500;
+    }
+
+    .badge svg { width: 14px; height: 14px; fill: #7fe8e0; flex-shrink: 0; }
+
+    .card-body { padding: 28px 32px 32px; }
+
+    /* ── PAGES ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── FORM ── */
+    .form-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--teal-dark);
+      margin-bottom: 4px;
+    }
+
+    .form-subtitle {
+      font-size: 13px;
+      color: var(--gray-text);
+      margin-bottom: 22px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .form-group {
+      flex: 1;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--teal-dark);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--gray-border);
+      border-radius: 10px;
+      font-size: 15px;
+      color: #1a2e2e;
+      background: var(--gray-light);
+      transition: border-color .2s, background .2s;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--teal);
+      background: var(--white);
+    }
+
+    input.error { border-color: var(--danger); }
+
+    .field-error {
+      font-size: 11px;
+      color: var(--danger);
+      margin-top: 4px;
+      display: none;
+    }
+
+    .field-error.show { display: block; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s, background .2s;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .btn:active { transform: scale(.98); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
+      color: var(--white);
+      box-shadow: 0 4px 16px rgba(13,115,119,.30);
+    }
+
+    .btn-primary:hover { box-shadow: 0 6px 20px rgba(13,115,119,.40); }
+
+    .btn-outline {
+      background: var(--white);
+      color: var(--teal);
+      border: 2px solid var(--teal);
+      margin-top: 12px;
+    }
+
+    .btn-outline:hover { background: var(--teal-bg); }
+
+    .btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: var(--gray-text);
+      font-size: 12px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--gray-border);
+    }
+
+    /* ── CONFIRMATION PAGE ── */
+    .confirm-heading {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--teal-dark);
+      margin-bottom: 6px;
+    }
+
+    .confirm-sub {
+      font-size: 14px;
+      color: var(--gray-text);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .confirm-sub strong { color: var(--teal); }
+
+    .what-next {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--teal-dark);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 14px;
+    }
+
+    .btn-call-now {
+      background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
+      color: var(--white);
+      box-shadow: 0 4px 16px rgba(13,115,119,.30);
+    }
+
+    .btn-call-now:hover { box-shadow: 0 6px 20px rgba(13,115,119,.40); }
+
+    .patient-info-box {
+      margin-top: 22px;
+      background: var(--teal-bg);
+      border: 1px solid var(--gray-border);
+      border-radius: 12px;
+      padding: 14px 18px;
+    }
+
+    .patient-info-box p {
+      font-size: 13px;
+      color: var(--teal-dark);
+      line-height: 1.8;
+    }
+
+    .patient-info-box p span { font-weight: 600; }
+
+    /* status toast */
+    .toast {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .toast.success { background: #e6f4ea; color: #1e6b2e; border: 1px solid #a8d5b0; display: block; }
+    .toast.error   { background: #fdecea; color: var(--danger); border: 1px solid #f5b4ae; display: block; }
+    .toast.loading { background: var(--teal-bg); color: var(--teal-dark); border: 1px solid var(--gray-border); display: block; }
+
+    @media (max-width: 400px) {
+      .card-body { padding: 22px 20px 26px; }
+      .card-header { padding: 24px 20px 18px; }
+      .form-row { flex-direction: column; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- ── HEADER (shared) ── -->
+  <div class="card-header">
+    <div class="clinic-name">AngaTech <span>Health</span></div>
+    <div class="badge">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 14.93V17a1 1 0 0 1-2 0v-.07A8.001 8.001 0 0 1 4.07 11H5a1 1 0 0 1 0 2h-.93A8.001 8.001 0 0 1 11 19.93zm0-13.86A8.001 8.001 0 0 1 19.93 11H19a1 1 0 0 1 0-2h.93A8.001 8.001 0 0 1 13 4.07V5a1 1 0 0 1-2 0v-.93z"/></svg>
+      Powered by Voice AI
+    </div>
+  </div>
+
+  <div class="card-body">
+
+    <!-- ══════════════════════════════════════
+         PAGE 1 — REGISTRATION FORM
+    ══════════════════════════════════════ -->
+    <div class="page active" id="page-form">
+      <div class="form-title">Patient Demo Access</div>
+      <div class="form-subtitle">Fill in your details to experience our AI voice assistant.</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First Name</label>
+          <input type="text" id="firstName" placeholder="Jane" autocomplete="given-name" />
+          <div class="field-error" id="err-firstName">Required</div>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Last Name</label>
+          <input type="text" id="lastName" placeholder="Smith" autocomplete="family-name" />
+          <div class="field-error" id="err-lastName">Required</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="jane@example.com" autocomplete="email" />
+        <div class="field-error" id="err-email">Enter a valid email</div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+        <div class="field-error" id="err-phone">Enter a valid phone number</div>
+      </div>
+
+      <div class="form-group">
+        <label for="dob">Date of Birth</label>
+        <input type="date" id="dob" />
+        <div class="field-error" id="err-dob">Required</div>
+      </div>
+
+      <button class="btn btn-primary" onclick="submitForm()">Try our demo →</button>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PAGE 2 — CONFIRMATION
+    ══════════════════════════════════════ -->
+    <div class="page" id="page-confirm">
+      <div class="confirm-heading">Thank you, <span id="confirm-name"></span>!</div>
+      <div class="confirm-sub">
+        You're all set to experience <strong>AngaTech Health's Voice AI</strong>.<br>
+        You can schedule appointments, request refills, ask billing questions, and more.
+      </div>
+
+      <div class="what-next">What's next?</div>
+
+      <button class="btn btn-call-now" onclick="dialNow()">
+        📞 &nbsp;Call us now &nbsp;· &nbsp;+1 (805) 439-8008
+      </button>
+
+      <button class="btn btn-outline" id="callMeBtn" onclick="callMe()">
+        📲 &nbsp;Call me instead
+      </button>
+
+      <div class="toast" id="callToast"></div>
+
+      <div class="patient-info-box">
+        <p>Patient Name: <span id="info-name"></span></p>
+        <p>Date of Birth: <span id="info-dob"></span></p>
+      </div>
+    </div>
+
+  </div><!-- /card-body -->
+</div><!-- /card -->
+
+<script>
+  /* ── Scenario list (mirrors scenarios.py) ── */
+  const SCENARIO_IDS = [
+    "scenario_01","scenario_02","scenario_03","scenario_04","scenario_05",
+    "scenario_06","scenario_07","scenario_08","scenario_09","scenario_10"
+  ];
+
+  function randomScenario() {
+    return SCENARIO_IDS[Math.floor(Math.random() * SCENARIO_IDS.length)];
+  }
+
+  /* ── Form validation ── */
+  function validateForm() {
+    let valid = true;
+
+    function check(id, test, errId) {
+      const el = document.getElementById(id);
+      const err = document.getElementById(errId || ('err-' + id));
+      const ok = test(el.value.trim());
+      el.classList.toggle('error', !ok);
+      err.classList.toggle('show', !ok);
+      if (!ok) valid = false;
+    }
+
+    check('firstName', v => v.length > 0);
+    check('lastName',  v => v.length > 0);
+    check('email',     v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
+    check('phone',     v => v.replace(/\D/g,'').length >= 10);
+    check('dob',       v => v.length > 0);
+
+    return valid;
+  }
+
+  /* ── Format phone for display ── */
+  function normalizePhone(raw) {
+    const digits = raw.replace(/\D/g,'');
+    if (digits.length === 10) return '+1' + digits;
+    if (digits.length === 11 && digits[0] === '1') return '+' + digits;
+    return '+' + digits;
+  }
+
+  /* ── Format date for display ── */
+  function formatDOB(val) {
+    if (!val) return '';
+    const [y, m, d] = val.split('-');
+    const months = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+    return months[parseInt(m,10)-1] + ' ' + parseInt(d,10) + ', ' + y;
+  }
+
+  /* ── Page 1 submit ── */
+  function submitForm() {
+    if (!validateForm()) return;
+
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const dob       = document.getElementById('dob').value;
+
+    document.getElementById('confirm-name').textContent = firstName;
+    document.getElementById('info-name').textContent    = firstName + ' ' + lastName;
+    document.getElementById('info-dob').textContent     = formatDOB(dob);
+
+    document.getElementById('page-form').classList.remove('active');
+    document.getElementById('page-confirm').classList.add('active');
+  }
+
+  /* ── "Call us now" — just shows the number (already in button label) ── */
+  function dialNow() {
+    window.location.href = 'tel:+18054398008';
+  }
+
+  /* ── "Call me instead" — POST to Render ── */
+  async function callMe() {
+    const btn   = document.getElementById('callMeBtn');
+    const toast = document.getElementById('callToast');
+    const phone = normalizePhone(document.getElementById('phone').value.trim());
+
+    btn.disabled = true;
+    btn.textContent = 'Requesting call…';
+    toast.className = 'toast loading';
+    toast.textContent = 'Connecting you to the AI assistant…';
+
+    try {
+      const resp = await fetch('https://voice-bot-xtjs.onrender.com/call/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone_number: phone,
+          scenario_id:  randomScenario()
+        })
+      });
+
+      const data = await resp.json();
+
+      if (resp.ok) {
+        toast.className = 'toast success';
+        toast.textContent = '✅ You\'ll receive a call shortly! Scenario: ' + (data.scenario || 'Patient demo');
+        btn.textContent = '✔ Call requested';
+      } else {
+        throw new Error(data.error || 'Server error ' + resp.status);
+      }
+    } catch(e) {
+      toast.className = 'toast error';
+      toast.textContent = '❌ ' + e.message;
+      btn.disabled = false;
+      btn.textContent = '📲  Call me instead';
+    }
+  }
+</script>
+</body>
+</html>
