@@ -59,6 +59,11 @@ TARGET_NUMBER = os.getenv("TEST_PHONE_NUMBER")
 BASE_URL = os.getenv("BASE_URL")
 
 # Initialize Twilio client
+# Clear proxy env vars to avoid "proxies" keyword argument error in Twilio SDK
+os.environ.pop("HTTP_PROXY", None)
+os.environ.pop("HTTPS_PROXY", None)
+os.environ.pop("http_proxy", None)
+os.environ.pop("https_proxy", None)
 twilio_client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 # Store active conversation bots keyed by CallSid
