@@ -14,7 +14,7 @@ import sys
 import json
 import random
 from datetime import datetime
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, send_from_directory
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse
 from dotenv import load_dotenv
@@ -265,43 +265,6 @@ def call_status():
     return str(response)
 
 
-@app.route("/transcripts", methods=["GET"])
-def list_transcripts():
-    """
-    List all saved transcript files.
-    
-    Returns:
-        JSON list of transcript filenames and metadata
-    """
-    try:
-        transcripts = []
-        
-        if os.path.exists(TRANSCRIPT_DIR):
-            for filename in os.listdir(TRANSCRIPT_DIR):
-                if filename.endswith(".json"):
-                    filepath = os.path.join(TRANSCRIPT_DIR, filename)
-                    file_size = os.path.getsize(filepath)
-                    file_mtime = datetime.fromtimestamp(os.path.getmtime(filepath)).isoformat()
-                    
-                    transcripts.append({
-                        "filename": filename,
-                        "size_bytes": file_size,
-                        "modified": file_mtime
-                    })
-        
-        # Sort by modification time (newest first)
-        transcripts.sort(key=lambda x: x["modified"], reverse=True)
-        
-        return {
-            "count": len(transcripts),
-            "transcripts": transcripts
-        }, 200
-    
-    except Exception as e:
-        print(f"Error listing transcripts: {e}")
-        return {"error": str(e)}, 500
-
-
 @app.route("/transcripts/<filename>", methods=["GET"])
 def get_transcript(filename):
     """
@@ -348,6 +311,11 @@ def health_check():
     }, 200
 
 
+@app.route("/")
+def index():
+    return send_from_directory(".", "index.html")
+
+
 def save_transcript(call_sid, conversation_data):
     """
     Save a conversation transcript to JSON file.
@@ -383,6 +351,39 @@ def save_transcript(call_sid, conversation_data):
     
     except Exception as e:
         print(f"Error saving transcript: {e}")
+
+
+@app.route("/transcripts", methods=["GET"])
+def list_transcripts():
+    """List all saved transcripts as JSON, or return a specific one by call_sid."""
+    call_sid = request.args.get("call_sid")
+    files = sorted(
+        [f for f in os.listdir(TRANSCRIPT_DIR) if f.endswith(".json")],
+        reverse=True
+    )
+    if call_sid:
+        match = next((f for f in files if f.startswith(call_sid)), None)
+        if not match:
+            return {"error": "transcript not found"}, 404
+        with open(os.path.join(TRANSCRIPT_DIR, match)) as f:
+            return json.load(f), 200
+    # Return index of all transcripts
+    index = []
+    for fname in files:
+        try:
+            with open(os.path.join(TRANSCRIPT_DIR, fname)) as f:
+                data = json.load(f)
+            index.append({
+                "file": fname,
+                "call_sid": data.get("call_sid"),
+                "scenario_name": data.get("scenario_name"),
+                "patient_name": data.get("patient_name"),
+                "turns": data.get("turns"),
+                "end_time": data.get("end_time"),
+            })
+        except Exception:
+            index.append({"file": fname, "error": "could not parse"})
+    return {"count": len(index), "transcripts": index}, 200
 
 
 if __name__ == "__main__":
